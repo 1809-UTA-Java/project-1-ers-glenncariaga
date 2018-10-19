@@ -19,7 +19,7 @@ import com.revature.model.Employee;
 public class EmployeeController {
 	
 	@Autowired
-	EmployeeRepo employeeRepo;
+	private EmployeeRepo employeeRepo;
 
 	@GetMapping("/employees")
 	public List<Employee> getAllEmployees() {
@@ -28,6 +28,7 @@ public class EmployeeController {
 	
 	@PostMapping("/employee/add")
 	public Employee addEmployee(@RequestBody Employee employee) {
+		
 		return employeeRepo.save(employee);
 	}
 	
@@ -53,4 +54,5 @@ public class EmployeeController {
 		Employee updatedEmployee = employeeRepo.save(_employee);
 		return updatedEmployee;
 	}
+	
 }
