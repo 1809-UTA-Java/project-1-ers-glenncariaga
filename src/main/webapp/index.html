@@ -1,0 +1,183 @@
+<!doctype html>
+<html class="no-js" lang="">
+
+<head>
+<meta charset="utf-8">
+<meta http-equiv="x-ua-compatible" content="ie=edge">
+<title></title>
+<meta name="description" content="">
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<link rel="manifest" href="site.webmanifest">
+<link rel="apple-touch-icon" href="icon.png">
+</head>
+
+<body>
+	<div id="navigation" class="container navigation">
+		
+	</div>
+	<div id="login" class="container login">
+		<div>
+			<label for="loginUsername">Username<input id="loginUsername"
+				name="loginUserName" type="text" /></label>
+		</div>
+		<div>
+			<label for="loginPassword"> Password</label><input id="loginPassword"
+				name="loginPassword" type="text"></input>
+		</div>
+		<div>
+			<input type=button name="loginButton" value="Login" />
+		</div>
+		<div id="loginErrorMsg"></div>
+	</div>
+	<div id="managerMenu" class="container managerMenu" hidden=true></div>
+	<div id="employeeMenu" class="container employeeMenu" hidden=true>
+
+	</div>
+
+	<script src="http://code.jquery.com/jquery-2.2.4.min.js"></script>
+	<script type="text/javascript">
+
+		//state
+		const state = {
+				loggedin :'',
+				activeRole:'',
+				activeUser: ''
+		}
+        //AJAX config
+
+        const BaseUrl = "http://localhost:8080";
+
+        const getAjax = async (url, config) => {
+        	try{
+	            let result = await $.ajax(url, config);
+	            let data = await result;
+            return data
+        	}catch(ex){
+        		return ex
+        	}
+        }
+        
+        const get = {
+                cache: 'false',
+                contentType: 'application/json',
+                dataType: "JSON",
+                type: "GET",
+            }
+        
+        const post = (data)=>{
+        	data = JSON.stringify(data)
+        	return({
+        		cache: 'false',
+        		contentType: 'application/json',
+        		dataType: "JSON",
+        		data:data,
+        		type: "POST"
+        	})
+        }
+        
+        const put = (data)=>{
+        	return({
+        		cache: 'false',
+        		contentType: 'application/json',
+        		dataType: "Json",
+        		data:data,
+        		type: "PUT"
+        	})
+        }
+        //services
+        const hideAll = ()=>{
+        	$("#login").attr("hidden","hidden");
+        	$("#employeeMenu").attr("hidden", "hidden");
+        	$("#managerMenu").attr("hidden","hidden");
+        }
+        
+        //Controller
+        const controller = (state)=>{
+        	console.log(state)
+        	
+        	if(state.loggedIn){
+        		if(isManagerLog(state.activeUser.userRole)){
+        		}else{
+        			selectEmployee();
+        		}
+        		
+        		if(state.activeRole==="manager"){
+        			
+        		}
+        		
+        		if(state.activeRole ==="employee"){
+        			employeeScreen();
+        		}
+        	}
+        	
+        }
+        
+        //Login Fuctions
+        const isManagerLog=(userRole)=>{
+        	console.log(userRole)
+        	if(userRole !=="manager"){
+        		return false
+        	}
+        	
+        	$("#loginErrorMsg").html(
+        			`<div>
+        				<div>
+        					Would You like to log in as: ?
+        				</div>
+        				<div>
+        				<input type = "button" value = "Manager" id = "managerSelect" />
+        				<input type = "button" value = "Employee" id = "employeeSelect" />
+        				</div>
+        			</div>`
+        			)
+        }
+        
+        const doLogin = async ()=>{
+        	data = {}
+   			data.username= $("#loginUsername").val().trim();
+   			data.password= $("#loginPassword").val().trim();
+   			try{
+	        	let result = await getAjax(`${BaseUrl}/login`, post(data))
+	   			state.loggedIn =true;
+	        	state.activeUser = result;
+	   			loginErrorMsg("Login Successful!")
+   			}catch(error){
+   				loginErrorMsg(error.responseText);
+   			}
+   			
+   			controller(state);
+        }
+        
+        const loginErrorMsg =(msg)=>{
+        	$("#loginErrorMsg").text(msg);
+        }
+        
+        //manager Screen
+        const selectManager = ()=>{
+        	state.activeRole = "manager";
+        	console.log("manager")
+        	hideAll();
+        }
+        //employee Screen
+        const selectEmployee = ()=>{
+        	state.activeRole = "employee";
+        	console.log('employee')
+        }
+        
+        const employeeScreen=()=>{
+        	let list = getAjax(`${baseUrl}+/reimbursement/${state.activeUser.id})`)
+        	$("#employeeMenu").removeAttr("hidden")
+        	$("#employeeMenu").html()
+        }
+        //document ready
+        $("document").ready(() => {
+            $("input[name = loginButton]").on("click", doLogin)
+            $("#loginErrorMsg").on("click","#managerSelect", selectManager)
+            $("#loginErrorMsg").on("click","#employeeSelect", selectEmployee)
+        })
+    </script>
+</body>
+
+</html>
