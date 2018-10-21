@@ -31,15 +31,15 @@ public class ReimDao {
 		return found;
 	}
 	
-	public Reimbursement saveUser(Reimbursement reim) {
+	public void saveUser(Reimbursement reim) {
+		System.out.println(reim.toString());
 		Session session = HibernateUtil.getSession();
 		Transaction tx = session.beginTransaction();
-		Reimbursement _reim =  (Reimbursement) session.save(reim);
+		session.save(reim);
 		tx.commit();
-		return _reim;
 	}
 	
-	public Reimbursement updateReim(String id, Reimbursement reim) {
+	public void updateReim(String id, Reimbursement reim) {
 		Reimbursement _reim = getReimById(id);
 		if(_reim != null) {
 			_reim.setAmount(reim.getAmount()!=null?reim.getAmount():_reim.getAmount());
@@ -54,25 +54,20 @@ public class ReimDao {
 			
 			Session session = HibernateUtil.getSession();
 			Transaction tx = session.beginTransaction();
-			Reimbursement txReimbursement =  (Reimbursement) session.save(_reim);
+			session.update(_reim);
 			tx.commit();
-			return txReimbursement;
 		}
-		return null;
 	}
 	
-	public Reimbursement getReimByUser(String id){
-		Reimbursement found = null;
-		List<Reimbursement> reim = new ArrayList<>();
+	public List<Reimbursement> getReimByUser(String id){
+		System.out.println("reimbyuser: "+id);
+		List<Reimbursement> reims = new ArrayList<>();
 		Session session = HibernateUtil.getSession();
-		
-		reim = session.createQuery(
+		reims = session.createQuery(
 				"from Reimbursement where submittedBy =:idVar"
 				).setString("idVar", id).list();
-		if(!reim.isEmpty()) {
-			found = reim.get(0);
-		}
-		return found;
+		
+		return reims;
 	}
 	
 }

@@ -69,7 +69,8 @@ public class ReimServlet extends HttpServlet{
 		ObjectMapper om = new ObjectMapper();
 		Reimbursement postReim = (Reimbursement) om.readValue(request.getInputStream(), Reimbursement.class);
 		PrintWriter pw = response.getWriter();
-		pw.print(dao.saveUser(postReim));
+		dao.saveUser(postReim);
+		pw.write("Write Succeeded");
 		pw.close();
 		response.setStatus(HttpServletResponse.SC_OK);
 	}
@@ -80,10 +81,13 @@ public class ReimServlet extends HttpServlet{
 	protected void doPut(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		String id = request.getPathInfo();
+		id = id.substring(1, id.length());
 		ObjectMapper om = new ObjectMapper();
 		Reimbursement reim = (Reimbursement) om.readValue(request.getInputStream(), Reimbursement.class);
 		PrintWriter pw = response.getWriter();
-		pw.print(dao.updateReim(id, reim));
+		dao.updateReim(id, reim);
+		pw.write("Update Succeeded");
+		pw.close();
 		response.setStatus(HttpServletResponse.SC_OK);
 	}
 

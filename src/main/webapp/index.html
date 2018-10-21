@@ -2,37 +2,34 @@
 <html class="no-js" lang="">
 
 <head>
-<meta charset="utf-8">
-<meta http-equiv="x-ua-compatible" content="ie=edge">
-<title></title>
-<meta name="description" content="">
-<meta name="viewport"
-	content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<meta charset="utf-8">
+	<meta http-equiv="x-ua-compatible" content="ie=edge">
+	<title></title>
+	<meta name="description" content="">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-<link rel="manifest" href="site.webmanifest">
-<link rel="apple-touch-icon" href="icon.png">
+	<link rel="manifest" href="site.webmanifest">
+	<link rel="apple-touch-icon" href="icon.png">
 </head>
 
 <body>
-	<div id="navigation" class="container navigation">
-		
+	<div id="title" class="container navigation">
+		<h1>Simple ERS</h1>
 	</div>
 	<div id="login" class="container login">
 		<div>
-			<label for="loginUsername">Username<input id="loginUsername"
-				name="loginUserName" type="text" /></label>
+			<label for="loginUsername">Username<input id="loginUsername" name="loginUserName" type="text" /></label>
 		</div>
 		<div>
-			<label for="loginPassword"> Password</label><input id="loginPassword"
-				name="loginPassword" type="text"></input>
+			<label for="loginPassword"> Password</label><input id="loginPassword" name="loginPassword" type="text"></input>
 		</div>
 		<div>
 			<input type=button name="loginButton" value="Login" />
 		</div>
 		<div id="loginErrorMsg"></div>
 	</div>
-	<div id="managerMenu" class="container managerMenu" hidden=true></div>
-	<div id="employeeMenu" class="container employeeMenu" hidden=true>
+	<div id="managerMenu" class="container managerMenu" hidden></div>
+	<div id="employeeMenu" class="container employeeMenu" hidden>
 
 	</div>
 
@@ -40,89 +37,93 @@
 	<script type="text/javascript">
 
 		//state
-		const state = {
-				loggedin :'',
-				activeRole:'',
-				activeUser: ''
+		var state = {
+			loggedin: '',
+			activeRole: '',
+			activeUser: '',
+			tableView: "all"
 		}
-        //AJAX config
+		//AJAX config
 
-        const BaseUrl = "http://localhost:8080";
+		const baseUrl = "http://localhost:8080";
 
-        const getAjax = async (url, config) => {
-        	try{
-	            let result = await $.ajax(url, config);
-	            let data = await result;
-            return data
-        	}catch(ex){
-        		return ex
-        	}
-        }
-        
-        const get = {
-                cache: 'false',
-                contentType: 'application/json',
-                dataType: "JSON",
-                type: "GET",
-            }
-        
-        const post = (data)=>{
-        	data = JSON.stringify(data)
-        	return({
-        		cache: 'false',
-        		contentType: 'application/json',
-        		dataType: "JSON",
-        		data:data,
-        		type: "POST"
-        	})
-        }
-        
-        const put = (data)=>{
-        	return({
-        		cache: 'false',
-        		contentType: 'application/json',
-        		dataType: "Json",
-        		data:data,
-        		type: "PUT"
-        	})
-        }
-        //services
-        const hideAll = ()=>{
-        	$("#login").attr("hidden","hidden");
-        	$("#employeeMenu").attr("hidden", "hidden");
-        	$("#managerMenu").attr("hidden","hidden");
-        }
-        
-        //Controller
-        const controller = (state)=>{
-        	console.log(state)
-        	
-        	if(state.loggedIn){
-        		if(isManagerLog(state.activeUser.userRole)){
-        		}else{
-        			selectEmployee();
-        		}
-        		
-        		if(state.activeRole==="manager"){
-        			
-        		}
-        		
-        		if(state.activeRole ==="employee"){
-        			employeeScreen();
-        		}
-        	}
-        	
-        }
-        
-        //Login Fuctions
-        const isManagerLog=(userRole)=>{
-        	console.log(userRole)
-        	if(userRole !=="manager"){
-        		return false
-        	}
-        	
-        	$("#loginErrorMsg").html(
-        			`<div>
+		const getAjax = async (url, config) => {
+			try {
+				let result = await $.ajax(url, config);
+				let data = await result;
+				return data
+			} catch (ex) {
+				return ex
+			}
+		}
+
+		const get = {
+			cache: 'false',
+			contentType: 'application/json',
+			dataType: "JSON",
+			type: "GET",
+		}
+
+		const post = (data) => {
+			data = JSON.stringify(data);
+			console.log(data)
+			return ({
+				cache: 'false',
+				contentType: 'application/json',
+				dataType: "JSON",
+				data: data,
+				type: "POST"
+			})
+		}
+
+		const put = (data) => {
+			data = JSON.stringify(data);
+			console.log(data)
+			return ({
+				cache: 'false',
+				contentType: 'application/json',
+				dataType: "JSON",
+				data: data,
+				type: "PUT"
+			})
+		}
+		//services
+		const hideAll = () => {
+			$("#login").attr("hidden", "hidden");
+			$("#employeeMenu").attr("hidden", "hidden");
+			$("#managerMenu").attr("hidden", "hidden");
+		}
+
+		//Controller
+		const controller = () => {
+			console.log(state)
+
+			if (state.loggedIn) {
+				if (!isManagerLog(state.activeUser.userRole)) {
+					console.log("not a manager")
+				} else {
+					console.log("is a manager")
+				}
+
+				if (state.activeRole === "manager") {
+					managerScreen();
+				}
+
+				if (state.activeRole === "employee") {
+					employeeScreen();
+				}
+			}
+
+		}
+
+		//Login Fuctions
+		const isManagerLog = (userRole) => {
+			if (userRole !== "manager") {
+				return false
+			}
+
+			$("#loginErrorMsg").html(
+				`<div>
         				<div>
         					Would You like to log in as: ?
         				</div>
@@ -131,53 +132,357 @@
         				<input type = "button" value = "Employee" id = "employeeSelect" />
         				</div>
         			</div>`
-        			)
-        }
-        
-        const doLogin = async ()=>{
-        	data = {}
-   			data.username= $("#loginUsername").val().trim();
-   			data.password= $("#loginPassword").val().trim();
-   			try{
-	        	let result = await getAjax(`${BaseUrl}/login`, post(data))
-	   			state.loggedIn =true;
-	        	state.activeUser = result;
-	   			loginErrorMsg("Login Successful!")
-   			}catch(error){
-   				loginErrorMsg(error.responseText);
-   			}
-   			
-   			controller(state);
-        }
-        
-        const loginErrorMsg =(msg)=>{
-        	$("#loginErrorMsg").text(msg);
-        }
-        
-        //manager Screen
-        const selectManager = ()=>{
-        	state.activeRole = "manager";
-        	console.log("manager")
-        	hideAll();
-        }
-        //employee Screen
-        const selectEmployee = ()=>{
-        	state.activeRole = "employee";
-        	console.log('employee')
-        }
-        
-        const employeeScreen=()=>{
-        	let list = getAjax(`${baseUrl}+/reimbursement/${state.activeUser.id})`)
-        	$("#employeeMenu").removeAttr("hidden")
-        	$("#employeeMenu").html()
-        }
-        //document ready
-        $("document").ready(() => {
-            $("input[name = loginButton]").on("click", doLogin)
-            $("#loginErrorMsg").on("click","#managerSelect", selectManager)
-            $("#loginErrorMsg").on("click","#employeeSelect", selectEmployee)
-        })
-    </script>
+			)
+
+			return true;
+		}
+
+		const doLogin = async () => {
+			data = {}
+			data.username = $("#loginUsername").val().trim();
+			data.password = $("#loginPassword").val().trim();
+			try {
+				let result = await getAjax(`${baseUrl}/login`, post(data))
+				state.loggedIn = true;
+				state.activeUser = result;
+				loginErrorMsg("Login Successful!")
+			} catch (error) {
+				loginErrorMsg(error.responseText);
+			}
+
+			controller(state);
+		}
+
+		const loginErrorMsg = (msg) => {
+			$("#loginErrorMsg").text(msg);
+		}
+
+		//manager Screen
+		const selectManager = () => {
+			state.activeRole = "manager";
+			console.log("manager")
+			controller();
+		}
+
+		const managerScreen = async () => {
+			try {
+				list = await getAjax(`${baseUrl}/reimbursement`, get)
+				hideAll();
+				$("#managerMenu").removeAttr("hidden");
+				$("#managerMenu").html(managerNav() + reimTable(list))
+			} catch (error) {
+				console.log(error)
+			}
+		}
+
+		const managerNav = () => {
+			return (`
+				<input type = "button" value = "Requests" id = "reimTable" />
+				<input type = "button" value = "Employees" id ="viewEmployees" />
+				<input type = "button" value = "Logout" id = "managerLogout" />
+			`)
+		}
+
+		const reimTable = (list) => {
+			console.log(list.length, list)
+			let tableRows = [];
+			if (list != null && list.length > 0) {
+				tableRows = list.map(rec => {
+					return (`
+					<tr>
+						<td>${rec.id}</td>
+						<td>${rec.description}</td>
+						<td>${rec.amount}</td>
+						<td>${new Date(rec.submittedOn)}</td>
+						<td>${rec.submittedBy}</td>
+						<td>${rec.resolver}</td>
+						<td>${rec.type}</td>
+						<td>${rec.status}</td>
+						<td>${approveDenyButton(rec.status)}</td>
+						<td>${rec.resolvedOn ? new Date(rec.resolvedOn) : resolveButton(rec)}</td>
+					</tr>
+				`)
+				})
+				tableRows.join(" ")
+			}
+			return (`
+				<div ><h2 id= "empTableTitle">All Reimbursements</h2></div>
+				<table>
+				<tr>
+					<th>ID</th>
+					<th>Description<th>
+					<th>Amount</th>
+					<th>Submitted On </th>
+					<th>Author</th>
+					<th>Resolver</th>
+					<th>Type</th>
+					<th>Status</th>
+					<th>Action</th>
+					<th>Resloved?</th>
+				</tr>
+				${tableRows}
+				</table>
+			`)
+		}
+
+		const approveDenyButton = (status) => {
+			return (
+				status === "denied" ?
+					`<input value = "Approve" type ="button" class = "reimDecision"/>` :
+					`<input value = "Deny" type = "button" class = "reimDecision" />`
+			)
+		}
+		const resolveButton = (rec) => {
+			return (
+				`<input type = "button" value ="Resolve" data =("key",${rec}) class ="resolve"/>
+			`)
+		}
+
+		//employee Screen
+		const selectEmployee = () => {
+			state.activeRole = "employee";
+			console.log('employee')
+			controller();
+		}
+
+		const employeeScreen = async () => {
+			hideAll();
+			$("#employeeMenu").removeAttr("hidden");
+			try {
+
+				let list = await getAjax(`${baseUrl} /reimbyuser/${state.activeUser.id} `, get)
+
+				console.log("this list", list);
+
+				$("#employeeMenu").html(employeeNav() + employeeForm() + employeeTable(list))
+			} catch (error) {
+				console.log(error)
+			}
+		}
+
+		const employeeNav = () => {
+			return (`
+				< div >
+				Employee Menu
+				</div >
+			<div>
+				<input type="button" value="Edit Info" id="employeeEdit" />
+				<input type="button" value="Reimbursements" id="employeeReim" />
+				<input type="button" value="Logout" id="employeeLogout" />
+			</div>
+		`)
+		}
+
+		const employeeForm = () => {
+			return (`
+			< div >
+			<div>
+				ReimbursementForm
+				</div>
+			<div>
+				<label for="reimAmount">Amount</label>
+				<input name="reimAmount" type="text" id="reimAmount" />
+			</div>
+			<div>
+				<label for="reimDescription">Description</label>
+				<input name="reimDescription" type="text" id="reimDescription" />
+			</div>
+			<div>
+				<label for="reimType">Type</label>
+				<input name="reimType" type="text" id="reimType" />
+			</div>
+
+			<div>
+				<input id="submitReimbursement" type="button" value="Submit" />
+			</div>
+			</div >
+			`)
+		}
+
+		const employeeInfoForm = (user) => {
+			return (`
+			< div >
+			Edit Employee Information
+				</div >
+			<div>
+				<label for="empInfoFirstName">First Name </label>
+				<input value="${user.firstName}" type="text" name"empInfoFirstName" id="empInfoFirstName"/>
+				<div>
+					<div>
+						<label for="empInfoLastName">Last Name </label>
+						<input value="${user.lastName}" type="text" name"empInfoLastName" id="empInfoLastName"/>
+				<div>
+							<div>
+								<label for="empInfoEmail">Email</label>
+								<input value="${user.email}" type="text" name"empInfoEmail" id="empInfoEmail"/>
+				<div>
+									<div>
+										<label for="empInfoPassword">Password</label>
+										<input value="${user.password}" type="text" name"empInfoPassword" id="empInfoPassword"/>
+				<div>
+											<div>
+												<input value="Submit" type="button" id="empInfoSubmit" />
+											</div>
+											<div id="empInfoMsg">
+											</div>
+											`)
+
+		}
+
+		const employeeTable = (list) => {
+			console.log(list.length, list)
+			let tableRows = [];
+			if (list != null && list.length > 0) {
+				tableRows = list.map(rec => {
+					return (`
+					<tr>
+						<td>${rec.id}</td>
+						<td>${rec.description}</td>
+						<td>${rec.amount}</td>
+						<td>${rec.submittedOn}</td>
+						<td>${rec.submittedBy}</td>
+						<td>${rec.type}</td>
+						<td>${rec.status}</td>
+						<td>${rec.resolvedOn}</td>
+					</tr>
+				`)
+				})
+				tableRows.join(" ")
+			}
+			return (`
+				<div ><h2 id="empTableTitle">All Reimbursements</h2></div>
+											<table>
+												<tr>
+													<th>ID</th>
+													<th>Description<th>
+														<th>Amount</th>
+														<th>Submitted</th>
+														<th>Author</th>
+														<th>Type</th>
+														<th>Status</th>
+														<th>Resloved?</th>
+				</tr>
+														${tableRows}
+				</table>
+													`)
+		}
+
+		const employeeEdit = () => {
+			let employee = state.activeUser
+			$("#employeeMenu").html(employeeNav() + employeeInfoForm(employee))
+		}
+		const empInfoSubmit = async () => {
+			try {
+				let employee = state.activeUser
+				employee.lastName = $("#empInfoLastName").val();
+				employee.firstName = $("#empInfoFirstName").val();
+				employee.email = $("#empInfoEmail").val();
+				employee.password = $("#empInfoPassword").val();
+
+				getAjax(`${baseUrl}/employee/${employee.id}`, put(employee));
+
+			} catch (error) {
+				console.log(error)
+				$("#empInfoMsg").text(error)
+			}
+		}
+		const logout = () => {
+			state = {
+				loggedin: '',
+				activeRole: '',
+				activeUser: '',
+				tableView: "all"
+			}
+			hideAll();
+			$("#login").removeAttr("hidden")
+			$("#login").html(`
+			<div>
+														<label for="loginUsername">Username<input id="loginUsername" name="loginUserName" type="text" /></label>
+													</div>
+													<div>
+														<label for="loginPassword"> Password</label><input id="loginPassword" name="loginPassword" type="text"></input>
+													</div>
+													<div>
+														<input type=button name="loginButton" value="Login" />
+													</div>
+													<div id="loginErrorMsg"></div>
+													`)
+		}
+
+		const submitReimbursement = () => {
+			let reimbursement = {
+				id: "1234",
+				amount: $("#reimAmount").val(),
+				description: $("#reimDescription").val(),
+				resolvedOn: "1111-11-11",
+				resolver: "123",
+				status: "submitted",
+				submittedBy: state.activeUser.id,
+				submittedOn: "1111-11-11",
+				type: $("#reimType").val(),
+			}
+			try {
+				getAjax(`${baseUrl}/reimbursement`, post(reimbursement))
+			} catch (error) {
+				console.log(error)
+			}
+
+
+		}
+		const filterEmpTableView = async () => {
+			let list = await getAjax(`${baseUrl}/reimbyuser/${state.activeUser.id}`, get)
+			let newList = null;
+			if (state.tableView === "all") {
+				state.tableView = "pending";
+				newList = list.filter(item => {
+					if (item.status === "pending") {
+						return item;
+					}
+				})
+				$("#employeeMenu").html(employeeNav() + employeeForm() + employeeTable(newList))
+				$("#empTableTitle").text("Pending Reimbursements")
+				return
+			}
+
+			if (state.tableView === "pending") {
+				state.tableView = "resolved";
+				newList = list.filter(item => {
+					if (item.status === "resolved") {
+						return item;
+					}
+				})
+				$("#employeeMenu").html(employeeNav() + employeeForm() + employeeTable(newList))
+				$("#empTableTitle").text("Resolved Reimbursements")
+				return
+			}
+
+			if (state.tableView === "resolved") {
+				state.tableView = "all";
+				$("#employeeMenu").html(employeeNav() + employeeForm() + employeeTable(list))
+				$("#empTableTitle").text("All Reimbursements")
+				return
+			}
+
+		}
+
+		//document ready
+		$("document").ready(() => {
+			$("#login").on("click", "input[name = loginButton]", doLogin);
+			$("#login").on("click", "#managerSelect", selectManager);
+			$("#login").on("click", "#employeeSelect", selectEmployee);
+
+			//employeeScreen buttons
+			$("#employeeMenu").on("click", "#employeeEdit", employeeEdit);
+			$("#employeeMenu").on("click", "#empInfoSubmit", empInfoSubmit);
+			$("#employeeMenu").on("click", "#employeeReim", employeeScreen);
+			$("#employeeMenu").on("click", "#employeeLogout", logout)
+			$("#employeeMenu").on("click", "#submitReimbursement", submitReimbursement)
+			$("#employeeMenu").on("click", "#empTableTitle", filterEmpTableView)
+
+			//managerScreen buttons
+			$("#managerMenu").on("click", "managerLogout", logout)
+		})
+	</script>
 </body>
 
 </html>

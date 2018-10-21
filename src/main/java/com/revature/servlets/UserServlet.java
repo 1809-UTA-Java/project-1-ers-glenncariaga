@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.revature.models.ERS_Users;
 import com.revature.repository.UserDao;
 import com.revature.util.HibernateUtil;
@@ -39,7 +40,7 @@ public class UserServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		String id = request.getPathInfo();
-		
+		id = id.substring(1, id.length());
 		ObjectMapper om = new ObjectMapper();
 		String obj;
 		System.out.println("pathinfo: " + id);
@@ -67,12 +68,16 @@ public class UserServlet extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
+		try {
 		ObjectMapper om = new ObjectMapper();
 		ERS_Users postUser = (ERS_Users) om.readValue(request.getInputStream(), ERS_Users.class);
 		PrintWriter pw = response.getWriter();
-		pw.print(dao.saveUser(postUser));
+		dao.saveUser(postUser);
 		pw.close();
 		response.setStatus(HttpServletResponse.SC_OK);
+		}catch(InvalidFormatException ex) {
+			
+		}
 	}
 
 	/**
@@ -81,10 +86,13 @@ public class UserServlet extends HttpServlet {
 	protected void doPut(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		String id = request.getPathInfo();
+		id = id.substring(1, id.length());
 		ObjectMapper om = new ObjectMapper();
 		ERS_Users user = (ERS_Users) om.readValue(request.getInputStream(), ERS_Users.class);
 		PrintWriter pw = response.getWriter();
-		pw.print(dao.updateUser(id, user));
+		pw.write("Updated User");
+		pw.close();
+		dao.updateUser(id, user);
 		response.setStatus(HttpServletResponse.SC_OK);
 	}
 
