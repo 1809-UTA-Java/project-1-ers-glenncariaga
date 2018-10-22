@@ -1,12 +1,21 @@
 package com.revature.servlets;
 
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.sql.Blob;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -20,10 +29,13 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.engine.jdbc.BlobProxy;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.revature.models.ERS_Users;
 import com.revature.models.Reciept;
 import com.revature.util.HibernateUtil;
+import org.apache.commons.io.IOUtils;
 
-@WebServlet("/file")
+@WebServlet("/file/*")
 @MultipartConfig(maxFileSize = 1216584)
 public class FileServlet extends HttpServlet{
 	
@@ -51,24 +63,50 @@ public class FileServlet extends HttpServlet{
         }
 		
 		reciept.setReimId(request.getParameter("reimId"));
-		System.out.println(reciept.toString());
+		
 		try {
 			System.out.println("inside the try block");
 			Session session = HibernateUtil.getSession();
 			Transaction tx = session.beginTransaction();
 			
-			BufferedImage bufferedImage = ImageIO.read(inputStream);
-			ByteArrayOutputStream byteOutStream = new ByteArrayOutputStream();
-			ImageIO.write(bufferedImage, "PNG", byteOutStream);
-			reciept.setReciept(new SerialBlob(byteOutStream.toByteArray()));
+			byte[] picture = IOUtils.toByteArray(inputStream);
+			
+			reciept.setReciept(picture);
 			reciept.setId("1234");
-//			System.out.println(reciept.toString());	
 			session.save(reciept);
 			tx.commit();
-			System.out.println(reciept.toString());	
+
 			
 		}catch(Exception ex) {
 			ex.getStackTrace();
+		}
+	}
+	
+	protected void doGet(HttpServletRequest request,
+            HttpServletResponse response) throws ServletException, IOException {
+		String id = request.getPathInfo();
+		System.out.println("file server id:" +id);
+		if(id == null) {
+			response.setStatus(404);
+			response.sendError(404);
+			return;
+		}
+		
+		id = id.substring(1,id.length());
+		
+		Reciept found = null;
+		List<Reciept> reciepts = new ArrayList<>();
+		Session session = HibernateUtil.getSession();
+		
+		reciepts = session.createQuery(
+				"from Reciept where reimId =:idVar"
+				).setString("idVar", id).list();
+		if(!reciepts.isEmpty()) {
+			byte[] picture = reciepts.get(0).getReciept();
+			ByteArrayInputStream bis = new ByteArrayInputStream(picture);
+			BufferedImage bImage = ImageIO.read(bis);
+			response.setContentType("image/png");
+			IOUtils.write(picture, response.getOutputStream());
 		}
 	}
 }
