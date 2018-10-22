@@ -19,6 +19,7 @@ public class Reciept {
 	private byte[] reciept;
 	@Column(name = "e_r_id")
 	private String reimId;
+	
 	public String getId() {
 		return id;
 	}

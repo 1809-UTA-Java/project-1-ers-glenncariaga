@@ -28,6 +28,7 @@ public class UserDao {
 		if(!users.isEmpty()) {
 			found = users.get(0);
 		}
+		session.close();
 		return found;
 	}
 	
@@ -42,6 +43,7 @@ public class UserDao {
 		if(!users.isEmpty()) {
 			found =users.get(0);
 		}
+		session.close();
 		return found;
 	}
 	
@@ -50,6 +52,7 @@ public class UserDao {
 		Transaction tx = session.beginTransaction();
 		session.save(user);
 		tx.commit();
+		session.close();
 	}
 	
 	public void updateUser(String id, ERS_Users user) {
@@ -62,6 +65,7 @@ public class UserDao {
 			Transaction tx = session.beginTransaction();
 			session.update(_user);
 			tx.commit();
+			session.close();
 		}
 	}
 }

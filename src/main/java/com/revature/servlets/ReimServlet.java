@@ -76,6 +76,7 @@ public class ReimServlet extends HttpServlet{
 		pw.write("Write Succeeded");
 		pw.close();
 		response.setStatus(HttpServletResponse.SC_OK);
+		
 	}
 
 	/**
@@ -106,18 +107,4 @@ public class ReimServlet extends HttpServlet{
 		HibernateUtil.shutdown();
 	}
 	
-	//for Preflight
-	  @Override
-	  protected void doOptions(HttpServletRequest req, HttpServletResponse resp)
-	          throws ServletException, IOException {
-	      setAccessControlHeaders(req,resp);
-	      resp.setStatus(HttpServletResponse.SC_OK);
-	  }
-
-	  private void setAccessControlHeaders(HttpServletRequest req,HttpServletResponse resp) {
-	      resp.setHeader("Access-Control-Allow-Origin", req.getHeader("Origin"));
-	      resp.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
-	      resp.setHeader("Access-Control-Allow-Headers", "Content-Type,X-Requested-With,Accept,Authorization,Origin,Access-Control-Request-Method,Access-Control-Request-Headers");
-	  }
-
 }

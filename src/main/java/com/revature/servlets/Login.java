@@ -1,8 +1,6 @@
 package com.revature.servlets;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.List;
 import javax.servlet.ServletException;
@@ -11,7 +9,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.fasterxml.jackson.annotation.JsonFormat.Feature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.revature.models.ERS_Users;
@@ -63,19 +60,5 @@ public class Login extends HttpServlet {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		}
 	
-	}
-
-	// for Preflight
-	@Override
-	protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		setAccessControlHeaders(req, resp);
-		resp.setStatus(HttpServletResponse.SC_OK);
-	}
-
-	private void setAccessControlHeaders(HttpServletRequest req, HttpServletResponse resp) {
-		resp.setHeader("Access-Control-Allow-Origin", "*");
-		resp.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
-		resp.setHeader("Access-Control-Allow-Headers",
-				"Content-Type,X-Requested-With,Accept,Authorization,Origin,Access-Control-Request-Method,Access-Control-Request-Headers");
 	}
 }

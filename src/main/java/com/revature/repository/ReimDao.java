@@ -28,6 +28,7 @@ public class ReimDao {
 		if(!reim.isEmpty()) {
 			found = reim.get(0);
 		}
+		session.close();
 		return found;
 	}
 	
@@ -37,6 +38,7 @@ public class ReimDao {
 		Transaction tx = session.beginTransaction();
 		session.save(reim);
 		tx.commit();
+		session.close();
 	}
 	
 	public void updateReim(String id, Reimbursement reim) {
@@ -56,6 +58,7 @@ public class ReimDao {
 			Transaction tx = session.beginTransaction();
 			session.update(_reim);
 			tx.commit();
+			session.close();
 		}
 	}
 	
@@ -66,7 +69,7 @@ public class ReimDao {
 		reims = session.createQuery(
 				"from Reimbursement where submittedBy =:idVar"
 				).setString("idVar", id).list();
-		
+		session.close();
 		return reims;
 	}
 	
