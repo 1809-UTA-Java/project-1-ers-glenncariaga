@@ -7,6 +7,7 @@ import org.hibernate.cfg.Configuration;
 import org.hibernate.service.ServiceRegistry;
 
 import com.revature.models.ERS_Users;
+import com.revature.models.Reciept;
 import com.revature.models.Reimbursement;
 
 public class HibernateUtil {
@@ -22,6 +23,7 @@ public class HibernateUtil {
 	    SessionFactory sessionFactory = configuration
 	    		.addAnnotatedClass(ERS_Users.class)
 	    		.addAnnotatedClass(Reimbursement.class)
+	    		.addAnnotatedClass(Reciept.class)
 	    		.buildSessionFactory(serviceRegistry);
 	    
 	    return sessionFactory;

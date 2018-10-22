@@ -10,6 +10,11 @@
 
 	<link rel="manifest" href="site.webmanifest">
 	<link rel="apple-touch-icon" href="icon.png">
+	<style>
+		table, th, td{
+			border: 1px solid black;
+		}
+	</style>
 </head>
 
 <body>
@@ -50,8 +55,7 @@
 		const getAjax = async (url, config) => {
 			try {
 				let result = await $.ajax(url, config);
-				let data = await result;
-				return data
+				return result
 			} catch (ex) {
 				return ex
 			}
@@ -166,10 +170,13 @@
 
 		const managerScreen = async () => {
 			try {
-				list = await getAjax(`${baseUrl}/reimbursement`, get)
+				let managerList = await getAjax(`${baseUrl}/reimbursement`, get)
+				let employeeList = await getAjax(`${baseUrl}/employee`, get)
 				hideAll();
 				$("#managerMenu").removeAttr("hidden");
-				$("#managerMenu").html(managerNav() + reimTable(list))
+				table = await reimTable(managerList);
+				employee = employeeListTable(employeeList);
+				$("#managerMenu").html(managerNav() + employee + table)
 			} catch (error) {
 				console.log(error)
 			}
@@ -177,65 +184,164 @@
 
 		const managerNav = () => {
 			return (`
-				<input type = "button" value = "Requests" id = "reimTable" />
-				<input type = "button" value = "Employees" id ="viewEmployees" />
 				<input type = "button" value = "Logout" id = "managerLogout" />
 			`)
 		}
 
-		const reimTable = (list) => {
+		const employeeListTable = (list) => {
 			console.log(list.length, list)
 			let tableRows = [];
 			if (list != null && list.length > 0) {
 				tableRows = list.map(rec => {
-					return (`
-					<tr>
-						<td>${rec.id}</td>
-						<td>${rec.description}</td>
-						<td>${rec.amount}</td>
-						<td>${new Date(rec.submittedOn)}</td>
-						<td>${rec.submittedBy}</td>
-						<td>${rec.resolver}</td>
-						<td>${rec.type}</td>
-						<td>${rec.status}</td>
-						<td>${approveDenyButton(rec.status)}</td>
-						<td>${rec.resolvedOn ? new Date(rec.resolvedOn) : resolveButton(rec)}</td>
-					</tr>
-				`)
+					try {
+						return (`
+							<tr>
+								<td class = "empId">${ rec.id}</td>
+								<td>${ rec.username}</td>
+								<td>${ rec.firstName}</td>
+								<td>${ rec.lastName}</td>
+								<td>${ rec.email}</td >
+							</tr >
+						`)
+					} catch (error) {
+						console.log(error)
+					}
 				})
-				tableRows.join(" ")
+
 			}
+			tableRows = tableRows.join('')
 			return (`
-				<div ><h2 id= "empTableTitle">All Reimbursements</h2></div>
+			<div> <h2 id="empTable">Employee List</h2></div >
 				<table>
-				<tr>
-					<th>ID</th>
-					<th>Description<th>
-					<th>Amount</th>
-					<th>Submitted On </th>
-					<th>Author</th>
-					<th>Resolver</th>
-					<th>Type</th>
-					<th>Status</th>
-					<th>Action</th>
-					<th>Resloved?</th>
-				</tr>
-				${tableRows}
+					<tr>
+						<th>ID</th>
+						<th>Username</th>
+						<th>First Name</th>
+						<th>Last Name </th>
+						<th>Email</th>
+					</tr>
+							${tableRows}
 				</table>
-			`)
+						`)
+		}
+
+		const reimTable = async (list) => {
+			console.log(list.length, list)
+			let tableRows = [];
+			if (list != null && list.length > 0) {
+				tableRows = list.map(async (rec) => {
+					try {
+						let submittedBy = await getAjax(`${baseUrl}/employee/${rec.submittedBy}`, get);
+						let resolver = await getAjax(`${baseUrl}/employee/${rec.resolver}`, get);
+						if (resolver == null) {
+							resolver = {
+								firstName: "",
+								lastName: ""
+							}
+						}
+
+						if (submittedBy == null) {
+							submittedBy = {
+								firstName: "anonymous",
+								lastName: ""
+							}
+						}
+						return (`
+							<tr>
+								<td>${ rec.id}</td>
+								<td>${ rec.description}</td>
+								<td>${ rec.amount}</td>
+								<td>${ new Date(rec.submittedOn)}</td>
+								<td>${ submittedBy.firstName} ${submittedBy.lastName}</td >
+								<td>${ resolver.firstName} ${resolver.lastName}</td>
+								<td>${ rec.type}</td>
+								<td>${ rec.status}</td>
+								<td>${ approveDenyButton(rec.status)}</td>
+								<td>${ rec.resolvedOn ? new Date(rec.resolvedOn) : resolveButton(rec)}</td>
+							</tr >
+						`)
+					} catch (error) {
+						console.log(error)
+					}
+				})
+
+			}
+			tableRows = await Promise.all(tableRows);
+			tableRows = tableRows.join('');
+			return (`
+			<div> <h2 id="managerEmpTable">All Reimbursements</h2></div >
+				<table>
+					<tr>
+						<th>ID</th>
+						<th>Description</th>
+						<th>Amount</th>
+						<th>Submitted On </th>
+						<th>Author</th>
+						<th>Resolver</th>
+						<th>Type</th>
+						<th>Status</th>
+						<th>Action</th>
+						<th>Resloved?</th>
+					</tr>
+							${tableRows}
+				</table>
+						`)
+		}
+
+		async function viewEmployeeReimb() {
+			let id = $(this).parent().find(".empId").text();
+
+			try {
+				let managerList = await getAjax(`${baseUrl}/reimbursement/${id}`, get)
+				let employeeList = await getAjax(`${baseUrl}/employee`, get)
+				hideAll();
+				$("#managerMenu").removeAttr("hidden");
+				table = await reimTable(managerList);
+				employee = employeeListTable(employeeList);
+				$("#managerMenu").html(managerNav() + employee + table)
+			} catch (error) {
+				console.log(error)
+			}
 		}
 
 		const approveDenyButton = (status) => {
 			return (
 				status === "denied" ?
-					`<input value = "Approve" type ="button" class = "reimDecision"/>` :
-					`<input value = "Deny" type = "button" class = "reimDecision" />`
+					`<input value="Approve" type="button" class="reimDecision" />` :
+					`<input value="Deny" type="button" class="reimDecision" />`
 			)
 		}
+
+		function changeDecision() {
+			console.log($(this).val())
+			if ($(this).val() === "Approve") {
+				$(this).val("Deny");
+			} else {
+				$(this).val("Approve");
+			}
+		}
+
+		async function resolveDecision() {
+			console.log($(this).val(), $(this).data('reim'))
+			data = $(this).data('reim');
+			data = JSON.parse(data.substring(1, data.length - 1));
+			data.resolver = state.activeUser.id;
+			data.resolvedOn = "1540076251000";
+			decision = $(this).parent().find(".reimDecision").val();
+			if (decision === "Deny") {
+				data.status = "denied";
+			} else {
+				data.status = "approved";
+			}
+			console.log(data)
+			await getAjax(`${baseUrl}/reimbursement/${data.id}`, put(data))
+			managerScreen();
+		}
+
 		const resolveButton = (rec) => {
 			return (
-				`<input type = "button" value ="Resolve" data =("key",${rec}) class ="resolve"/>
-			`)
+				`<input type="button" value="Resolve" data-reim=(${JSON.stringify(rec)}) class ="resolve"/>
+					`)
 		}
 
 		//employee Screen
@@ -246,11 +352,11 @@
 		}
 
 		const employeeScreen = async () => {
-			hideAll();
-			$("#employeeMenu").removeAttr("hidden");
-			try {
 
-				let list = await getAjax(`${baseUrl} /reimbyuser/${state.activeUser.id} `, get)
+			try {
+				hideAll();
+				$("#employeeMenu").removeAttr("hidden");
+				let list = await getAjax(`${baseUrl}/reimbyuser/${state.activeUser.id}`, get)
 
 				console.log("this list", list);
 
@@ -262,70 +368,72 @@
 
 		const employeeNav = () => {
 			return (`
-				< div >
-				Employee Menu
-				</div >
-			<div>
-				<input type="button" value="Edit Info" id="employeeEdit" />
-				<input type="button" value="Reimbursements" id="employeeReim" />
-				<input type="button" value="Logout" id="employeeLogout" />
-			</div>
-		`)
+				<div>
+					Employee Menu
+				</div>
+				<div>
+					<input type="button" value="Edit Info" id="employeeEdit" />
+					<input type="button" value="Reimbursements" id="employeeReim" />
+					<input type="button" value="Logout" id="employeeLogout" />
+				</div>
+						`)
 		}
 
 		const employeeForm = () => {
 			return (`
-			< div >
 			<div>
-				ReimbursementForm
+				<div>
+					ReimbursementForm
 				</div>
-			<div>
-				<label for="reimAmount">Amount</label>
-				<input name="reimAmount" type="text" id="reimAmount" />
+				<div>
+					<label for="reimAmount">Amount</label>
+					<input name="reimAmount" type="text" id="reimAmount" />
+				</div>
+				<div>
+					<label for="reimDescription">Description</label>
+					<input name="reimDescription" type="text" id="reimDescription" />
+				</div>
+				<div>
+					<label for="reimType">Type</label>
+					<input name="reimType" type="text" id="reimType" />
+				</div>
+				<div>
+					<label for="reimReciept">Reciept</label>
+					<input name="reimReciept" type="file" id="reimReciept" />
+				</div>
+				<div>
+					<input id="submitReimbursement" type="button" value="Submit" />
+				</div>
 			</div>
-			<div>
-				<label for="reimDescription">Description</label>
-				<input name="reimDescription" type="text" id="reimDescription" />
-			</div>
-			<div>
-				<label for="reimType">Type</label>
-				<input name="reimType" type="text" id="reimType" />
-			</div>
-
-			<div>
-				<input id="submitReimbursement" type="button" value="Submit" />
-			</div>
-			</div >
-			`)
+						`)
 		}
 
 		const employeeInfoForm = (user) => {
 			return (`
-			< div >
-			Edit Employee Information
-				</div >
-			<div>
-				<label for="empInfoFirstName">First Name </label>
-				<input value="${user.firstName}" type="text" name"empInfoFirstName" id="empInfoFirstName"/>
 				<div>
+							Edit Employee Information
+				</div >
+					<div>
+						<label for="empInfoFirstName">First Name </label>
+						<input value="${user.firstName}" type="text" name"empInfoFirstName" id="empInfoFirstName"/>
+					</div>
 					<div>
 						<label for="empInfoLastName">Last Name </label>
 						<input value="${user.lastName}" type="text" name"empInfoLastName" id="empInfoLastName"/>
-				<div>
-							<div>
-								<label for="empInfoEmail">Email</label>
-								<input value="${user.email}" type="text" name"empInfoEmail" id="empInfoEmail"/>
-				<div>
-									<div>
-										<label for="empInfoPassword">Password</label>
-										<input value="${user.password}" type="text" name"empInfoPassword" id="empInfoPassword"/>
-				<div>
-											<div>
-												<input value="Submit" type="button" id="empInfoSubmit" />
-											</div>
-											<div id="empInfoMsg">
-											</div>
-											`)
+					</div>
+					<div>
+						<label for="empInfoEmail">Email</label>
+						<input value="${user.email}" type="text" name"empInfoEmail" id="empInfoEmail"/>
+					</div>
+					<div>
+						<label for="empInfoPassword">Password</label>
+						<input value="${user.password}" type="text" name"empInfoPassword" id="empInfoPassword"/>
+					</div>
+					<div>
+						<input value="Submit" type="button" id="empInfoSubmit" />
+					</div>
+						<div id="empInfoMsg"></div>
+			`)
 
 		}
 
@@ -335,36 +443,36 @@
 			if (list != null && list.length > 0) {
 				tableRows = list.map(rec => {
 					return (`
-					<tr>
-						<td>${rec.id}</td>
-						<td>${rec.description}</td>
-						<td>${rec.amount}</td>
-						<td>${rec.submittedOn}</td>
-						<td>${rec.submittedBy}</td>
-						<td>${rec.type}</td>
-						<td>${rec.status}</td>
-						<td>${rec.resolvedOn}</td>
-					</tr>
-				`)
+						<tr>
+							<td>${rec.id}</td>
+							<td>${rec.description}</td>
+							<td>${rec.amount}</td>
+							<td>${new Date(rec.submittedOn)}</td>
+							<td>${rec.type}</td>
+							<td>${rec.status}</td>
+							<td>${rec.status}</td>
+							<td>${new Date(rec.resolved)}</td>
+						</tr>	
+					`)
 				})
-				tableRows.join(" ")
+
+				tableRows = tableRows.join('');
 			}
 			return (`
-				<div ><h2 id="empTableTitle">All Reimbursements</h2></div>
-											<table>
-												<tr>
-													<th>ID</th>
-													<th>Description<th>
-														<th>Amount</th>
-														<th>Submitted</th>
-														<th>Author</th>
-														<th>Type</th>
-														<th>Status</th>
-														<th>Resloved?</th>
+						<div> <h2 id="empTableTitle">All Reimbursements</h2></div >
+							<table>
+								<tr>
+									<th>ID</th>
+									<th>Description</th>
+										<th>Amount</th>
+										<th>Submitted</th>
+										<th>Type</th>
+										<th>Status</th>
+										<th>Resloved?</th>
 				</tr>
-														${tableRows}
+										${tableRows}
 				</table>
-													`)
+									`)
 		}
 
 		const employeeEdit = () => {
@@ -397,16 +505,16 @@
 			$("#login").removeAttr("hidden")
 			$("#login").html(`
 			<div>
-														<label for="loginUsername">Username<input id="loginUsername" name="loginUserName" type="text" /></label>
-													</div>
-													<div>
-														<label for="loginPassword"> Password</label><input id="loginPassword" name="loginPassword" type="text"></input>
-													</div>
-													<div>
-														<input type=button name="loginButton" value="Login" />
-													</div>
-													<div id="loginErrorMsg"></div>
-													`)
+										<label for="loginUsername">Username<input id="loginUsername" name="loginUserName" type="text" /></label>
+									</div>
+									<div>
+										<label for="loginPassword"> Password</label><input id="loginPassword" name="loginPassword" type="text"></input>
+									</div>
+									<div>
+										<input type=button name="loginButton" value="Login" />
+									</div>
+									<div id="loginErrorMsg"></div>
+									`)
 		}
 
 		const submitReimbursement = () => {
@@ -416,16 +524,19 @@
 				description: $("#reimDescription").val(),
 				resolvedOn: "1111-11-11",
 				resolver: "123",
-				status: "submitted",
+				status: "pending",
 				submittedBy: state.activeUser.id,
 				submittedOn: "1111-11-11",
-				type: $("#reimType").val(),
+				type: $("#reimType").val()
 			}
-			try {
-				getAjax(`${baseUrl}/reimbursement`, post(reimbursement))
-			} catch (error) {
-				console.log(error)
-			}
+
+			getAjax(`${baseUrl}/reimbursement`, post(reimbursement))
+				.then(result => {
+					employeeScreen();
+				})
+				.error(error => {
+					console.log(error);
+				})
 
 
 		}
@@ -480,7 +591,10 @@
 			$("#employeeMenu").on("click", "#empTableTitle", filterEmpTableView)
 
 			//managerScreen buttons
-			$("#managerMenu").on("click", "managerLogout", logout)
+			$("#managerMenu").on("click", "#managerLogout", logout);
+			$("#managerMenu").on("click", "#empTable", viewEmployeeReimb);
+			$("#managerMenu").on("click", ".reimDecision", changeDecision)
+			$("#managerMenu").on("click", ".resolve", resolveDecision)
 		})
 	</script>
 </body>

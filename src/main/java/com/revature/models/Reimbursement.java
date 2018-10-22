@@ -30,24 +30,6 @@ public class Reimbursement {
 	@Column (name ="r_submitted")
 	private Timestamp submittedOn;
 	
-	public Reimbursement() {
-		super();
-		// TODO Auto-generated constructor stub
-	}
-	
-	public Reimbursement(String id, String description, String resolver, String type, String status, Double amount,
-			String submittedBy, Timestamp resolvedOn, Timestamp submittedOn) {
-		super();
-		this.id = id;
-		this.description = description;
-		this.resolver = resolver;
-		this.type = type;
-		this.status = status;
-		this.amount = amount;
-		this.submittedBy = submittedBy;
-		this.resolvedOn = resolvedOn;
-		this.submittedOn = submittedOn;
-	}
 	public String getId() {
 		return id;
 	}
@@ -102,12 +84,31 @@ public class Reimbursement {
 	public void setSubmittedOn(Timestamp submittedOn) {
 		this.submittedOn = submittedOn;
 	}
+
 	@Override
 	public String toString() {
 		return "Reimbursement [id=" + id + ", description=" + description + ", resolver=" + resolver + ", type=" + type
 				+ ", status=" + status + ", amount=" + amount + ", submittedBy=" + submittedBy + ", resolvedOn="
-				+ resolvedOn + ", submittedOn=" + submittedOn + "]";
+				+ resolvedOn + ", submittedOn=" + submittedOn  + "]";
 	}
+	public Reimbursement(String id, String description, String resolver, String type, String status, Double amount,
+			String submittedBy, Timestamp resolvedOn, Timestamp submittedOn) {
+		super();
+		this.id = id;
+		this.description = description;
+		this.resolver = resolver;
+		this.type = type;
+		this.status = status;
+		this.amount = amount;
+		this.submittedBy = submittedBy;
+		this.resolvedOn = resolvedOn;
+		this.submittedOn = submittedOn;
+	}
+	public Reimbursement() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+	
 	
 	
 }

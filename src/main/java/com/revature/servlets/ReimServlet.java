@@ -1,6 +1,7 @@
 package com.revature.servlets;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.List;
 
@@ -67,7 +68,9 @@ public class ReimServlet extends HttpServlet{
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		ObjectMapper om = new ObjectMapper();
-		Reimbursement postReim = (Reimbursement) om.readValue(request.getInputStream(), Reimbursement.class);
+		InputStream inputStream = request.getInputStream();
+		System.out.println(inputStream.toString());
+		Reimbursement postReim = (Reimbursement) om.readValue(inputStream, Reimbursement.class);
 		PrintWriter pw = response.getWriter();
 		dao.saveUser(postReim);
 		pw.write("Write Succeeded");

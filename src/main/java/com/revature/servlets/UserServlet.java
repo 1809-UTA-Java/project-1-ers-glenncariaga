@@ -40,7 +40,6 @@ public class UserServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		String id = request.getPathInfo();
-		id = id.substring(1, id.length());
 		ObjectMapper om = new ObjectMapper();
 		String obj;
 		System.out.println("pathinfo: " + id);
