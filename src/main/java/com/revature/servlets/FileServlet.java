@@ -29,7 +29,7 @@ public class FileServlet extends HttpServlet{
 
 	protected void doPost(HttpServletRequest request,
             HttpServletResponse response) throws ServletException, IOException {
-		
+		System.out.println("inside the doPost for file servlet");
 		InputStream inputStream = null;
 		Part filePart = request.getPart("reciept");
 		Reciept reciept = new Reciept();

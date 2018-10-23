@@ -14,6 +14,14 @@
 		table, th, td{
 			border: 1px solid black;
 		}
+		.container{
+			display:flex;
+			flex-direction: column;
+			justify-content: space-evenly;
+		}
+		img{
+			height:35vh;
+		}
 	</style>
 </head>
 
@@ -21,24 +29,17 @@
 	<div id="title" class="container navigation">
 		<h1>Simple ERS</h1>
 	</div>
-	<div id="login" class="container login">
-		<div>
-			<label for="loginUsername">Username<input id="loginUsername" name="loginUserName" type="text" /></label>
-		</div>
-		<div>
-			<label for="loginPassword"> Password</label><input id="loginPassword" name="loginPassword" type="text"></input>
-		</div>
-		<div>
-			<input type=button name="loginButton" value="Login" />
-		</div>
-		<div id="loginErrorMsg"></div>
-	</div>
+	<div id="login" class="container login"></div>
 	<div id="managerMenu" class="container managerMenu" hidden></div>
-	<div id="employeeMenu" class="container employeeMenu" hidden>
+	<div id="employeeMenu" class="container employeeMenu" hidden></div>
 
-	</div>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-2.2.4.min.js"></script>
+	<script type="text/javascript" src="manager.js"></script>
+	<script type="text/javascript" src="util.js"></script>
+	<script type="text/javascript" src="login.js"></script>
+	<script type="text/javascript" src="logout.js"></script>
+	<script type="text/javascript" src="employee.js"></script>
 
-	<script src="http://code.jquery.com/jquery-2.2.4.min.js"></script>
 	<script type="text/javascript">
 
 		//state
@@ -48,60 +49,9 @@
 			activeUser: '',
 			tableView: "all"
 		}
-		//AJAX config
-
-		const baseUrl = "http://localhost:8080";
-
-		const getAjax = async (url, config) => {
-			try {
-				let result = await $.ajax(url, config);
-				return result
-			} catch (ex) {
-				return ex
-			}
-		}
-
-		const get = {
-			cache: 'false',
-			contentType: 'application/json',
-			dataType: "JSON",
-			type: "GET",
-		}
-
-		const post = (data) => {
-			data = JSON.stringify(data);
-			console.log(data)
-			return ({
-				cache: 'false',
-				contentType: 'application/json',
-				dataType: "JSON",
-				data: data,
-				type: "POST"
-			})
-		}
-
-		const put = (data) => {
-			data = JSON.stringify(data);
-			console.log(data)
-			return ({
-				cache: 'false',
-				contentType: 'application/json',
-				dataType: "JSON",
-				data: data,
-				type: "PUT"
-			})
-		}
-		//services
-		const hideAll = () => {
-			$("#login").attr("hidden", "hidden");
-			$("#employeeMenu").attr("hidden", "hidden");
-			$("#managerMenu").attr("hidden", "hidden");
-		}
 
 		//Controller
 		const controller = () => {
-			console.log(state)
-
 			if (state.loggedIn) {
 				if (!isManagerLog(state.activeUser.userRole)) {
 					console.log("not a manager")
@@ -110,540 +60,19 @@
 					console.log("is a manager")
 				}
 			}
-
 		}
 
-		//Login Fuctions
-		const isManagerLog = (userRole) => {
-			if (userRole !== "manager") {
-				return false
-			}
-
-			$("#loginErrorMsg").html(
-				`<div>
-        				<div>
-        					Would You like to log in as: ?
-        				</div>
-        				<div>
-        				<input type = "button" value = "Manager" id = "managerSelect" />
-        				<input type = "button" value = "Employee" id = "employeeSelect" />
-        				</div>
-        			</div>`
-			)
-
-			return true;
+		//services
+		const hideAll = () => {
+			$("#login").html("");
+			$("#employeeMenu").html("");
+			$("#managerMenu").html("");
 		}
-
-		const doLogin = async () => {
-			data = {}
-			data.username = $("#loginUsername").val().trim();
-			data.password = $("#loginPassword").val().trim();
-			try {
-				let result = await getAjax(`${baseUrl}/login`, post(data))
-				state.loggedIn = true;
-				state.activeUser = result;
-				loginErrorMsg("Login Successful!")
-			} catch (error) {
-				loginErrorMsg(error.responseText);
-			}
-
-			controller(state);
-		}
-
-		const loginErrorMsg = (msg) => {
-			$("#loginErrorMsg").text(msg);
-		}
-
-		//manager Screen
-		const selectManager = () => {
-			state.activeRole = "manager";
-			console.log("manager")
-			controller();
-		}
-
-		const managerScreen = async () => {
-			try {
-				let managerList = await getAjax(`${baseUrl}/reimbursement`, get)
-				let employeeList = await getAjax(`${baseUrl}/employee`, get)
-				hideAll();
-				$("#managerMenu").removeAttr("hidden");
-				table = await reimTable(managerList);
-				employee = employeeListTable(employeeList);
-				$("#managerMenu").html(managerNav() + employee + table)
-			} catch (error) {
-				console.log(error)
-			}
-		}
-
-		const managerNav = () => {
-			return (`
-				<input type = "button" value = "Refresh" id = "managerRefresh" />
-				<input type = "button" value = "Logout" id = "managerLogout" />
-			`)
-		}
-
-		const employeeListTable = (list) => {
-			console.log(list.length, list)
-			let tableRows = [];
-			if (list != null && list.length > 0) {
-				tableRows = list.map(rec => {
-					try {
-						return (`
-							<tr>
-								<td class = "empId">${ rec.id}</td>
-								<td>${ rec.username}</td>
-								<td>${ rec.firstName}</td>
-								<td>${ rec.lastName}</td>
-								<td>${ rec.email}</td >
-							</tr >
-						`)
-					} catch (error) {
-						console.log(error)
-					}
-				})
-
-			}
-			tableRows = tableRows.join('')
-			return (`
-			<div> <h2 id="empTable">Employee List</h2></div >
-				<table>
-					<tr>
-						<th>ID</th>
-						<th>Username</th>
-						<th>First Name</th>
-						<th>Last Name </th>
-						<th>Email</th>
-					</tr>
-							${tableRows}
-				</table>
-						`)
-		}
-
-		const reimTable = async (list) => {
-			console.log(list.length, list)
-			let tableRows = [];
-			if (list != null && list.length > 0) {
-				tableRows = list.map(async (rec, index) => {
-					try {
-						let submittedBy = await getAjax(`${baseUrl}/employee/${rec.submittedBy}`, get);
-						let resolver = await getAjax(`${baseUrl}/employee/${rec.resolver}`, get);
-						let reciept = null;
-						try {
-							let config = {
-								type: "GET",
-								dataType: "binary",
-								processData: false,
-							}
-							reciept = await getAjax(`${baseUrl}/file/${rec.id}`, config)
-							reciept = `<img src="data:image/png;base64,${reciept}"/>`
-						} catch (error) {
-							console.log(error)
-							reciept = `<input type = "file" value = "Add Reciept" class = "addReciept" />`
-						}
-						if (reciept === null) {
-							reciept = `<input data-reimId =${rec.id} type = "file" value = "Add Reciept" class = "addReciept" />`
-						}
-
-						if (resolver == null) {
-							resolver = {
-								firstName: "",
-								lastName: ""
-							}
-						}
-
-						if (submittedBy == null) {
-							submittedBy = {
-								firstName: "anonymous",
-								lastName: ""
-							}
-						}
-						return (`
-							<tr>
-								<td>${ rec.id}</td>
-								<td>${ rec.description}</td>
-								<td>${ rec.amount}</td>
-								<td>${ new Date(rec.submittedOn)}</td>
-								<td>${ submittedBy.firstName} ${submittedBy.lastName}</td >
-								<td>${ resolver.firstName} ${resolver.lastName}</td>
-								<td>${ rec.type}</td>
-								<td>${ rec.status}</td>
-								<td>${ approveDenyButton(rec.status)}</td>
-								<td>${ rec.resolvedOn ? new Date(rec.resolvedOn) : resolveButton(rec)}</td>
-							</tr >
-							<tr>
-							Reciept: ${reciept}
-							</tr>
-						`)
-					} catch (error) {
-						console.log(error)
-					}
-				})
-
-			}
-			tableRows = await Promise.all(tableRows);
-			tableRows = tableRows.join('');
-			return (`
-			<div> <h2 id="managerEmpTable">All Reimbursements</h2></div >
-				<table>
-					<tr>
-						<th>ID</th>
-						<th>Description</th>
-						<th>Amount</th>
-						<th>Submitted On </th>
-						<th>Author</th>
-						<th>Resolver</th>
-						<th>Type</th>
-						<th>Status</th>
-						<th>Action</th>
-						<th>Resloved?</th>
-					</tr>
-							${tableRows}
-				</table>
-						`)
-		}
-
-		async function viewEmployeeReimb() {
-			let id = $(this).parent().find(".empId").text();
-
-			try {
-				let managerList = await getAjax(`${baseUrl}/reimbursement/${id}`, get)
-				let employeeList = await getAjax(`${baseUrl}/employee`, get)
-				hideAll();
-				$("#managerMenu").removeAttr("hidden");
-				table = await reimTable(managerList);
-				employee = employeeListTable(employeeList);
-				$("#managerMenu").html(managerNav() + employee + table)
-			} catch (error) {
-				console.log(error)
-			}
-		}
-
-		const approveDenyButton = (status) => {
-			return (
-				status === "denied" ?
-					`<input value="Approve" type="button" class="reimDecision" />` :
-					`<input value="Deny" type="button" class="reimDecision" />`
-			)
-		}
-
-		function changeDecision() {
-			console.log($(this).val())
-			if ($(this).val() === "Approve") {
-				$(this).val("Deny");
-			} else {
-				$(this).val("Approve");
-			}
-		}
-
-		async function resolveDecision() {
-			let data = $(this).attr('data-reim');
-			console.log(data);
-			data = JSON.parse(data);
-			data.resolver = state.activeUser.id;
-			data.resolvedOn = "1540076251000";
-			decision = $(this).parent().find(".reimDecision").val();
-			if (decision === "Deny") {
-				data.status = "denied";
-			} else {
-				data.status = "approved";
-			}
-			console.log(data)
-			try {
-				await getAjax(`${baseUrl}/reimbursement/${data.id}`, put(data))
-			} catch (error) {
-				console.log(error)
-			}
-			$(this).parent().html('');
-		}
-
-		const resolveButton = (rec) => {
-			rec = JSON.stringify(rec);
-			return (
-				`<input type="button" value="Resolve" data-reim='${rec}' class ="resolve"/>
-					`)
-		}
-
-		//employee Screen
-		const selectEmployee = () => {
-			state.activeRole = "employee";
-			console.log('employee')
-			controller();
-		}
-
-		const employeeScreen = async () => {
-
-			try {
-				hideAll();
-				$("#employeeMenu").removeAttr("hidden");
-				let list = await getAjax(`${baseUrl}/reimbyuser/${state.activeUser.id}`, get)
-
-				console.log("this list", list);
-				let table = await employeeTable(list);
-				$("#employeeMenu").html(employeeNav() + employeeForm() + table);
-			} catch (error) {
-				console.log(error)
-			}
-		}
-
-		const employeeNav = () => {
-			return (`
-				<div>
-					Employee Menu
-				</div>
-				<div>
-					<input type="button" value="Edit Info" id="employeeEdit" />
-					<input type="button" value="Reimbursements" id="employeeReim" />
-					<input type="button" value="Logout" id="employeeLogout" />
-				</div>
-						`)
-		}
-
-		const employeeForm = () => {
-			return (`
-			<div>
-				<div>
-					ReimbursementForm
-				</div>
-				<div>
-					<label for="reimAmount">Amount</label>
-					<input name="reimAmount" type="text" id="reimAmount" />
-				</div>
-				<div>
-					<label for="reimDescription">Description</label>
-					<input name="reimDescription" type="text" id="reimDescription" />
-				</div>
-				<div>
-					<label for="reimType">Type</label>
-					<input name="reimType" type="text" id="reimType" />
-				</div>
-				<div>
-					<input id="submitReimbursement" type="button" value="Submit" />
-				</div>
-			</div>
-						`)
-		}
-
-		const employeeInfoForm = (user) => {
-			return (`
-				<div>
-							Edit Employee Information
-				</div >
-					<div>
-						<label for="empInfoFirstName">First Name </label>
-						<input value="${user.firstName}" type="text" name"empInfoFirstName" id="empInfoFirstName"/>
-					</div>
-					<div>
-						<label for="empInfoLastName">Last Name </label>
-						<input value="${user.lastName}" type="text" name"empInfoLastName" id="empInfoLastName"/>
-					</div>
-					<div>
-						<label for="empInfoEmail">Email</label>
-						<input value="${user.email}" type="text" name"empInfoEmail" id="empInfoEmail"/>
-					</div>
-					<div>
-						<label for="empInfoPassword">Password</label>
-						<input value="${user.password}" type="text" name"empInfoPassword" id="empInfoPassword"/>
-					</div>
-					<div>
-						<input value="Submit" type="button" id="empInfoSubmit" />
-					</div>
-						<div id="empInfoMsg"></div>
-			`)
-
-		}
-
-		const employeeTable = async (list) => {
-			console.log(list.length, list)
-			let tableRows = [];
-			if (list != null && list.length > 0) {
-				tableRows = list.map(async (rec) => {
-					let reciept = null;
-					try {
-						let config = {
-							type: "GET",
-							contentType: "picture/png",
-							processData: false,
-						}
-						reciept = await getAjax(`${baseUrl}/file/${rec.id}`, config)
-						if (!reciept) {
-							reciept = `<input data-reimId =${rec.id} type = "file" value = "Add Reciept" class = "addReciept" />`
-						} else {
-							reciept = `<img src="${baseUrl}/file/${rec.id}"/>`
-						}
-
-					} catch (error) {
-						console.log(error)
-						console.log("could not read file")
-					}
-
-					return (`
-						<tr>
-							<td>${rec.id}</td>
-							<td>${rec.description}</td>
-							<td>${rec.amount}</td>
-							<td>${new Date(rec.submittedOn)}</td>
-							<td>${rec.type}</td>
-							<td>${rec.status}</td>
-							<td>${rec.status}</td>
-							<td>${ Date(rec.resolved)}</td>
-						</tr>
-						<tr>
-							<td>Reciept:  ${reciept}</td>
-						</tr>
-					`)
-				})
-				tableRows = await Promise.all(tableRows);
-				tableRows = tableRows.join('');
-			}
-			return (`
-						<div> <h2 id="empTableTitle">All Reimbursements</h2></div >
-							<table>
-								<tr>
-									<th>ID</th>
-									<th>Description</th>
-										<th>Amount</th>
-										<th>Submitted</th>
-										<th>Reciept</th>
-										<th>Type</th>
-										<th>Status</th>
-										<th>Resloved?</th>
-				</tr>
-										${tableRows}
-				</table>
-									`)
-		}
-
-		async function addReciept() {
-			console.log("addReciept");
-			let file = null;
-			if ($(this).prop('files').length > 0) {
-				file = $(this).prop('files')[0];
-			}
-			data = {
-				reimId: $(this).parent().attr("reimId"),
-				reciept: file,
-				id: "1234"
-			}
-
-			config = {
-				data: data,
-				method: "POST",
-			}
-			try {
-				let result = await getAjax(`${baseUrl}/file`, config)
-				employeeScreen();
-			} catch (ex) {
-				console.log(ex)
-				console.log("failed to upload file")
-			}
-
-		}
-
-		const employeeEdit = () => {
-			let employee = state.activeUser
-			$("#employeeMenu").html(employeeNav() + employeeInfoForm(employee))
-		}
-		const empInfoSubmit = async () => {
-			try {
-				let employee = state.activeUser
-				employee.lastName = $("#empInfoLastName").val();
-				employee.firstName = $("#empInfoFirstName").val();
-				employee.email = $("#empInfoEmail").val();
-				employee.password = $("#empInfoPassword").val();
-
-				getAjax(`${baseUrl}/employee/${employee.id}`, put(employee));
-
-			} catch (error) {
-				console.log(error)
-				$("#empInfoMsg").text(error)
-			}
-		}
-		const logout = () => {
-			state = {
-				loggedin: '',
-				activeRole: '',
-				activeUser: '',
-				tableView: "all"
-			}
-			hideAll();
-			$("#login").removeAttr("hidden")
-			$("#login").html(`
-			<div>
-										<label for="loginUsername">Username<input id="loginUsername" name="loginUserName" type="text" /></label>
-									</div>
-									<div>
-										<label for="loginPassword"> Password</label><input id="loginPassword" name="loginPassword" type="text"></input>
-									</div>
-									<div>
-										<input type=button name="loginButton" value="Login" />
-									</div>
-									<div id="loginErrorMsg"></div>
-									`)
-		}
-
-		const submitReimbursement = () => {
-			let reimbursement = {
-				id: "1234",
-				amount: $("#reimAmount").val(),
-				description: $("#reimDescription").val(),
-				resolvedOn: "1111-11-11",
-				resolver: "123",
-				status: "pending",
-				submittedBy: state.activeUser.id,
-				submittedOn: "1111-11-11",
-				type: $("#reimType").val()
-			}
-
-			getAjax(`${baseUrl}/reimbursement`, post(reimbursement))
-				.then(result => {
-					employeeScreen();
-				})
-				.catch(error => {
-					console.log(error);
-				})
-		}
-
-		const filterEmpTableView = async () => {
-			let list = await getAjax(`${baseUrl}/reimbyuser/${state.activeUser.id}`, get)
-			let newList = null;
-			if (state.tableView === "all") {
-				state.tableView = "pending";
-				newList = list.filter(item => {
-					if (item.status === "pending") {
-						return item;
-					}
-				})
-				let table = await employeeTable(newList);
-				$("#employeeMenu").html(employeeNav() + employeeForm() + table)
-				$("#empTableTitle").text("Pending Reimbursements")
-				return
-			}
-
-			if (state.tableView === "pending") {
-				state.tableView = "resolved";
-				newList = list.filter(item => {
-					if (item.status === "resolved") {
-						return item;
-					}
-				})
-				let table = await employeeTable(newList);
-				$("#employeeMenu").html(employeeNav() + employeeForm() + table)
-				$("#empTableTitle").text("Resolved Reimbursements")
-				return
-			}
-
-			if (state.tableView === "resolved") {
-				state.tableView = "all";
-				let table = await employeeTable(list);
-				$("#employeeMenu").html(employeeNav() + employeeForm() + table)
-				$("#empTableTitle").text("All Reimbursements")
-				return
-			}
-
-		}
-
 		//document ready
 		$("document").ready(() => {
+
+			logout();
+			//login Screen event handlers
 			$("#login").on("click", "input[name = loginButton]", doLogin);
 			$("#login").on("click", "#managerSelect", selectManager);
 			$("#login").on("click", "#employeeSelect", selectEmployee);
@@ -655,7 +84,7 @@
 			$("#employeeMenu").on("click", "#employeeLogout", logout)
 			$("#employeeMenu").on("click", "#submitReimbursement", submitReimbursement)
 			$("#employeeMenu").on("click", "#empTableTitle", filterEmpTableView)
-			$("#employeeMenu").on("input", ".addReciept", addReciept);
+			$("#employeeMenu").on("change", ".addReciept", addReciept);
 
 			//managerScreen buttons
 			$("#managerMenu").on("click", "#managerLogout", logout);
